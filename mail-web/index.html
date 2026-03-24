@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mail Tool</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #0f172a;
+      color: white;
+    }
+    h2 {
+      color: #38bdf8;
+    }
+    input, button {
+      margin: 10px 0;
+      padding: 10px;
+    }
+    button {
+      cursor: pointer;
+      background: #22c55e;
+      border: none;
+      color: white;
+    }
+    .box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #1e293b;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📂 Upload Email File</h2>
+  <input type="file" id="fileInput">
+  <br>
+  <button onclick="uploadFile()">Upload & Save</button>
+  <button onclick="checkDuplicate()">Check Duplicate</button>
+
+  <div class="box" id="result"></div>
+
+  <hr>
+
+  <h2>🔍 Filter by Domain</h2>
+  <input type="text" id="domainInput" placeholder="gmail.com,yahoo.com">
+  <button onclick="filterDomain()">Filter</button>
+
+  <h2>📊 Filter by Type</h2>
+  <select id="typeSelect">
+    <option value="microsoft">Microsoft</option>
+    <option value="mix">Mix</option>
+  </select>
+  <button onclick="filterType()">Filter</button>
+
+  <script>
+    const API = "";
+
+    async function uploadFile() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Chọn file trước");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(API + "/upload-file", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function checkDuplicate() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Chọn file trước");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(API + "/check-duplicate", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function filterDomain() {
+      const domains = document.getElementById("domainInput").value;
+
+      const res = await fetch(`${API}/filter?domains=${domains}`);
+      const data = await res.json();
+
+      document.getElementById("result").innerText = data.join("\n");
+    }
+
+    async function filterType() {
+      const type = document.getElementById("typeSelect").value;
+
+      const res = await fetch(`${API}/filter-type?type=${type}`);
+      const data = await res.json();
+
+      document.getElementById("result").innerText = data.join("\n");
+    }
+  </script>
+
+</body>
+</html>
