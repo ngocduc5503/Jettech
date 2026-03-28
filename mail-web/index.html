@@ -2,113 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mail Tool</title>
-  <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #0f172a;
-      color: white;
-    }
-    h2 {
-      color: #38bdf8;
-    }
-    input, button {
-      margin: 10px 0;
-      padding: 10px;
-    }
-    button {
-      cursor: pointer;
-      background: #22c55e;
-      border: none;
-      color: white;
-    }
-    .box {
-      margin-top: 20px;
-      padding: 10px;
-      background: #1e293b;
-      border-radius: 8px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-  </style>
+  <title>Jettech Mail Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
 
-  <h2>📂 Upload Email File</h2>
-  <input type="file" id="fileInput">
-  <br>
-  <button onclick="uploadFile()">Upload & Save</button>
-  <button onclick="checkDuplicate()">Check Duplicate</button>
+<body class="bg-slate-900 text-white p-6">
 
-  <div class="box" id="result"></div>
+<div class="max-w-6xl mx-auto">
 
-  <hr>
+  <h1 class="text-3xl font-bold text-cyan-400 mb-6">📧 Jettech Mail Tool</h1>
 
-  <h2>🔍 Filter by Domain</h2>
-  <input type="text" id="domainInput" placeholder="gmail.com,yahoo.com">
-  <button onclick="filterDomain()">Filter</button>
+  <!-- UPLOAD -->
+  <div class="bg-slate-800 p-6 rounded-xl mb-6">
+    <input type="file" id="fileInput" class="mb-4">
+    <div class="flex gap-3">
+      <button onclick="uploadFile()" class="bg-green-500 px-4 py-2 rounded">Upload</button>
+      <button onclick="checkDuplicate()" class="bg-yellow-500 px-4 py-2 rounded">Check Duplicate</button>
+    </div>
+  </div>
 
-  <h2>📊 Filter by Type</h2>
-  <select id="typeSelect">
-    <option value="microsoft">Microsoft</option>
-    <option value="mix">Mix</option>
-  </select>
-  <button onclick="filterType()">Filter</button>
+  <!-- RESULT -->
+  <div class="grid md:grid-cols-3 gap-4">
 
-  <script>
-    const API = "";
+    <div>
+      <h3 class="text-green-400">Upload Stats</h3>
+      <textarea id="uploadResult" class="w-full h-40 bg-black p-2 mt-2"></textarea>
+    </div>
 
-    async function uploadFile() {
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) return alert("Chọn file trước");
+    <div>
+      <h3 class="text-yellow-400">Duplicates</h3>
+      <textarea id="duplicateResult" class="w-full h-40 bg-black p-2 mt-2"></textarea>
+      <button onclick="copy('duplicateResult')" class="mt-2 bg-slate-600 px-2 py-1">Copy</button>
+    </div>
 
-      const formData = new FormData();
-      formData.append("file", file);
+    <div>
+      <h3 class="text-blue-400">Filter Result</h3>
+      <textarea id="filterResult" class="w-full h-40 bg-black p-2 mt-2"></textarea>
+      <button onclick="copy('filterResult')" class="mt-2 bg-slate-600 px-2 py-1">Copy</button>
+    </div>
 
-      const res = await fetch(API + "/upload-file", {
-        method: "POST",
-        body: formData
-      });
+  </div>
 
-      const data = await res.json();
-      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
-    }
+  <!-- FILTER -->
+  <div class="grid md:grid-cols-2 gap-4 mt-6">
 
-    async function checkDuplicate() {
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) return alert("Chọn file trước");
+    <div>
+      <input id="domainInput" placeholder="gmail.com,yahoo.com"
+        class="w-full p-2 bg-slate-700 mb-2">
+      <button onclick="filterDomain()" class="bg-blue-500 px-4 py-2 w-full">Filter Domain</button>
+    </div>
 
-      const formData = new FormData();
-      formData.append("file", file);
+    <div>
+      <select id="typeSelect" class="w-full p-2 bg-slate-700 mb-2">
+        <option value="microsoft">Microsoft</option>
+        <option value="mix">Mix</option>
+      </select>
+      <button onclick="filterType()" class="bg-purple-500 px-4 py-2 w-full">Filter Type</button>
+    </div>
 
-      const res = await fetch(API + "/check-duplicate", {
-        method: "POST",
-        body: formData
-      });
+  </div>
 
-      const data = await res.json();
-      document.getElementById("result").innerText = JSON.stringify(data, null, 2);
-    }
+</div>
 
-    async function filterDomain() {
-      const domains = document.getElementById("domainInput").value;
+<script>
+const API = "";
 
-      const res = await fetch(`${API}/filter?domains=${domains}`);
-      const data = await res.json();
+function copy(id){
+  const el = document.getElementById(id);
+  el.select();
+  document.execCommand("copy");
+  alert("Copied!");
+}
 
-      document.getElementById("result").innerText = data.join("\n");
-    }
+async function uploadFile(){
+  const file = document.getElementById("fileInput").files[0];
+  if(!file) return alert("Chọn file");
 
-    async function filterType() {
-      const type = document.getElementById("typeSelect").value;
+  const form = new FormData();
+  form.append("file", file);
 
-      const res = await fetch(`${API}/filter-type?type=${type}`);
-      const data = await res.json();
+  const res = await fetch("/upload-file",{method:"POST",body:form});
+  const data = await res.json();
 
-      document.getElementById("result").innerText = data.join("\n");
-    }
-  </script>
+  document.getElementById("uploadResult").value =
+    `Total: ${data.total}\nInserted: ${data.inserted}\nDuplicate: ${data.duplicate}`;
+}
+
+async function checkDuplicate(){
+  const file = document.getElementById("fileInput").files[0];
+  if(!file) return alert("Chọn file");
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("/check-duplicate",{method:"POST",body:form});
+  const data = await res.json();
+
+  document.getElementById("duplicateResult").value =
+    data.duplicates.join("\n");
+}
+
+async function filterDomain(){
+  const val = document.getElementById("domainInput").value;
+  const res = await fetch(`/filter?domains=${val}`);
+  const data = await res.json();
+
+  document.getElementById("filterResult").value = data.join("\n");
+}
+
+async function filterType(){
+  const val = document.getElementById("typeSelect").value;
+  const res = await fetch(`/filter-type?type=${val}`);
+  const data = await res.json();
+
+  document.getElementById("filterResult").value = data.join("\n");
+}
+</script>
 
 </body>
 </html>
