@@ -19,8 +19,8 @@ app.get("/", (req, res) => {
 // 🔥 CONNECT MONGODB
 // ==========================
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("✅ Connected MongoDB"))
-.catch(err => console.error("❌ MongoDB Error:", err));
+  .then(() => console.log("✅ Connected MongoDB"))
+  .catch(err => console.error("❌ MongoDB Error:", err));
 
 // ==========================
 // SCHEMA
@@ -29,7 +29,7 @@ const mailSchema = new mongoose.Schema({
   email: { type: String, unique: true, index: true },
   raw: String,
   domain: String,
-  type: String, 
+  type: String,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -114,10 +114,11 @@ app.post("/upload-file", upload.single("file"), async (req, res) => {
     }
 
     res.json({
-      success: true,
       total: docs.length,
       inserted: newDocs.length,
-      duplicate: docs.length - newDocs.length
+      duplicate: docs.length - newDocs.length,
+      newMails: newDocs.map(d => d.raw),
+      duplicates: docs.filter(d => existingSet.has(d.email)).map(d => d.raw)
     });
 
   } catch (err) {
