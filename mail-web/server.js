@@ -17,6 +17,12 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+const fs = require("fs");
+
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
 // ==========================
 // 🔥 CONNECT MONGODB
 // ==========================
@@ -40,7 +46,7 @@ const Mail = mongoose.model("Mail", mailSchema);
 // ==========================
 // MULTER (UPLOAD FILE)
 // ==========================
-const fs = require("fs");
+
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -144,7 +150,10 @@ app.post("/check-duplicate", upload.single("file"), async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const fileContent = req.file.buffer.toString("utf-8");
+    const fs = require("fs");
+
+    const fileContent = fs.readFileSync(req.file.path, "utf-8");
+    fs.unlinkSync(req.file.path);
 
     const docs = parseEmails(fileContent);
     const emails = docs.map(d => d.email);
