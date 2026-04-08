@@ -40,9 +40,14 @@ const Mail = mongoose.model("Mail", mailSchema);
 // ==========================
 // MULTER (UPLOAD FILE)
 // ==========================
+const fs = require("fs");
+
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, "uploads/"),
+    filename: (req, file, cb) => cb(null, Date.now() + ".txt")
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 function getMailType(domain) {
@@ -98,7 +103,7 @@ app.post("/upload-file", upload.single("file"), async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const fileContent = req.file.buffer.toString("utf-8");
+    const fileContent = fs.readFileSync(req.file.path, "utf-8");
 
     const docs = parseEmails(fileContent);
     const emails = docs.map(d => d.email);
@@ -114,6 +119,7 @@ app.post("/upload-file", upload.single("file"), async (req, res) => {
     if (newDocs.length > 0) {
       await Mail.insertMany(newDocs, { ordered: false });
     }
+    fs.unlinkSync(req.file.path);
 
     res.json({
       total: docs.length,
