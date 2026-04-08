@@ -9,10 +9,12 @@ app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 
 // 👉 SERVE FRONTEND
-app.use(express.static(__dirname));
+const path = require("path");
+
+app.use(express.static(path.join(__dirname)));
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // ==========================
